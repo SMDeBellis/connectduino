@@ -6,14 +6,25 @@ from serial import Serial
 from serial.tools.list_ports import comports
 import logging
 from time import sleep
-
+from sys import platform
+from os import path, makedirs
 ######################Logging setup##########################################
 
 log = logging.getLogger('serial_controller_module')
 log.setLevel(logging.INFO)
 
 #create a file handler
-handler = logging.FileHandler('/var/log/connectduino/connectduino.log')
+if 'win' in platform:
+    log_dir = 'C:\\ProgramData\\connectduino\logs\\'
+else:
+    log_dir = '/var/log/connectduino/'
+
+if not path.exists(log_dir):
+    makedirs(log_dir)
+
+file_name = 'serialduino.log'
+
+handler = logging.FileHandler(path.join(log_dir, file_name))
 handler.setLevel(logging.INFO)
 
 #create a Logging format
@@ -153,27 +164,27 @@ class SerialListener(Thread):
 if __name__ == '__main__':
 
     log.info('\n\n#######################Starting up Server############################')
-    queue = Queue()
-
-    log.info('creating connection_listener')
-    connection_listener = SerialController(queue)
-
-    try:
-        while True:
-            try:
-                #log.debug('getting value')
-                val = queue.get(timeout=.05)
-                queue.task_done()
-                #log.debug('done getting value')
-            except Empty:
-                log.debug("queue empty on get call") # noisy logging
-                pass
-            else:
-                log.info('value received = ' + str(val))
-                #queue.task_done()
-
-    except KeyboardInterrupt:
-        log.info('Keyboard interrupt received. Shutting down connection listener')
-        connection_listener.shutdown()
-        log.info('Shutting down main')
+    # queue = Queue()
+    #
+    # log.info('creating connection_listener')
+    # connection_listener = SerialController(queue)
+    #
+    # try:
+    #     while True:
+    #         try:
+    #             #log.debug('getting value')
+    #             val = queue.get(timeout=.05)
+    #             queue.task_done()
+    #             #log.debug('done getting value')
+    #         except Empty:
+    #             log.debug("queue empty on get call") # noisy logging
+    #             pass
+    #         else:
+    #             log.info('value received = ' + str(val))
+    #             #queue.task_done()
+    #
+    # except KeyboardInterrupt:
+    #     log.info('Keyboard interrupt received. Shutting down connection listener')
+    #     connection_listener.shutdown()
+    #     log.info('Shutting down main')
 
