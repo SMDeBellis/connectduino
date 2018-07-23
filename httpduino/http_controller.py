@@ -1,18 +1,18 @@
 #!/usr/bin/python
 
-import httplib
+from socket import *
 from threading import Thread, Event
-from Queue import Queue
+from Queue import Queue, Empty, Full
 import logging
 from time import sleep
 from sys import platform
 from os import path, makedirs
-######################Logging setup##########################################
 
+# #####################Logging setup##########################################
 log = logging.getLogger('http_controller_module')
 log.setLevel(logging.INFO)
 
-#create a file handler
+# create a file handler
 if 'win' in platform:
     log_dir = 'C:\ProgramData\connectduino\logs\\'
 else:
@@ -55,6 +55,10 @@ class HttpConnectionListener(Thread):
         self.connections = {} #maps ports to events
 
     def run(self):
+        host = ''
+        in_connection = socket(AF_INET, SOCK_STREAM)
+        in_connection.bind((host, self.port))
+        
         pass
 
     def shutdown_listeners(self):
