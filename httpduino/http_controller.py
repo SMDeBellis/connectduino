@@ -49,42 +49,62 @@ class HttpConnectionListener(Thread):
     def __init__(self, listening_port, queue, shutdown_event):
         self.log = logging.getLogger('http_controller_module.HttpConnectionListener')
         self.port = listening_port # port to listen on for new connections
-        self.available_ports = [x for x in range(18201, 18300)]
         self.shutdown_event = shutdown_event
         self.queue = queue
         self.connections = {} #maps ports to events
+        self.connection_events = {}
 
     def run(self):
         host = ''
-        in_connection = socket(AF_INET, SOCK_STREAM)
-        in_connection.bind((host, self.port))
-        
-        pass
+        listener = socket(AF_INET, SOCK_STREAM)
+        try:
+            listener.bind((host, self.port))
+            listener.listen(5)
+        except:
+            self.log.exception('exception thrown while binding to listening socket at port ' + self.port)
+
+        try:
+            while not self.shutdown_event.is_set():
+                (clientsocket, address) = listener.accept()
+                self.connection_events[address] = Event()
+                self.connections[address] = HttpListener(address, clientsocket, self.queue, self.connection_events[address])
+        except:
+            self.log.exception('exception thrown while listening to new connections')
+        finally:
+            self.shutdown_listeners()
 
     def shutdown_listeners(self):
-        for port, event in self.connections.iteritems():
+        for address, event in self.connection_events.iteritems():
             event.set()
 
         while len(self.connections) > 0:
-            self.remove_dead_connections()
+            dead_connections = []
+            for address, event in self.connection_events.iteritems():
+                if not event.is_set():
+                    dead_connections.append(address)
+            for addr in dead_connections:
+                del self.connections[addr]
+                del self.connection_events[addr]
 
         self.shutdown_event.clear()
 
     def remove_dead_connections(self):
         dead_ports = []
-        for port, event in self.connections.iteritems():
+        for addr, event in self.connection_events.iteritems():
             if event.is_set():
-                dead_ports.append(port)
-        for port in dead_ports:
-            del self.connections[port]
-            self.available_ports.append(port)
+                dead_ports.append(addr)
+        for addr in dead_ports:
+            del self.connections[addr]
+            del self.connection_events[addr]
 
 
 class HttpListener(Thread):
-    def __init__(self, port, queue):
+    def __init__(self, addr, socket, queue, event):
         self.log = logging.getLogger('http_controller_module.HttpListener')
-        self.port = port
+        self.addr = addr
         self.queue = queue
+        self.socket = socket
+        self.shutdown_event = event
 
     def run(self):
         pass
@@ -106,10 +126,10 @@ if __name__ == '__main__':
     try:
         while True:
             try:
-                #log.debug('getting value')
+                # log.debug('getting value')
                 val = queue.get(timeout=.05)
                 queue.task_done()
-                #log.debug('done getting value')
+                # log.debug('done getting value')
             except Empty:
                 log.debug("queue empty on get call") # noisy logging
                 pass
@@ -117,7 +137,7 @@ if __name__ == '__main__':
                 try:
                     nums.append(int(val))
                     #log.info('value received = ' + str(val))
-                #queue.task_done()
+                # queue.task_done()
                 except:
                     pass
     except KeyboardInterrupt:
