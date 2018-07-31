@@ -201,6 +201,5 @@ if __name__ == '__main__':
         log.info(str(sorted(nums)))
         log.info('All present: ' + str(analyze_queue(nums)))
         connection_listener.shutdown()
-        log.info()
         log.info('Shutting down main')
 
