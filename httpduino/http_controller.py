@@ -33,12 +33,13 @@ handler.setFormatter(formatter)
 #add the handlers to the Logger
 log.addHandler(handler)
 
+
 class HttpController:
-    def __init__(self, a_queue):
+    def __init__(self, a_queue, port=18200):
         self.log = logging.getLogger('http_controller_module.HttpController')
         self.log.debug('creating httpcontroller')
         self.shutdown_event = Event()
-        self.connection_listener = HttpConnectionListener(18200, a_queue, self.shutdown_event)
+        self.connection_listener = HttpConnectionListener(port, a_queue, self.shutdown_event)
         self.connection_listener.start()
         self.connection_listener = None
 
@@ -148,7 +149,13 @@ class HttpListener(Thread):
             try:
                 data = self.socket.recv(1024)
                 if data:
-                    log.debug('data = ' + str(data))
+                    try:
+                        log.debug('queuing data')
+                        self.queue.put_nowait(data)
+                    except Full:
+                        log.error('queue is full discarding data = ' + data)
+                    else:
+                        self.log.debug('data queued = ' + data)
                 else:
                     self.close_down_listener(['socket disconnection occurred on addr(' + str(self.addr[0]) + ', ' +
                                               str(self.addr[1]) + ') closing socket',

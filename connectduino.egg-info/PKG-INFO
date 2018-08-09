@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: connectduino
+Version: 0.0.1
+Summary: A package with tools to collect data
+Home-page: https://github.com/SMDeBellis/connectduino
+Author: Sean DeBellis
+Author-email: sdebellis462@gmail.com
+License: UNKNOWN
+Description: # Example Package
+        
+        This is a simple example package. You can use
+        [Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
+        to write your content.
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 2.7
+Classifier: License :: OSI Approved :: GNU General Public License v2 (GPLv2)
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
