@@ -208,14 +208,6 @@ if __name__ == '__main__':
             except Empty:
                 #log.debug("queue empty on get call") # noisy logging
                 pass
-            else:
-                try:
-                    log.debug("hello")
-                    #nums.append(int(val))
-                    #log.info('value received = ' + str(val))
-                # queue.task_done()
-                except:
-                    pass
     except KeyboardInterrupt:
         log.info('Keyboard interrupt received. Shutting down connection listeners')
         print '\nShutting down remaining open listeners please wait...'
